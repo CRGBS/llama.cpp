@@ -523,6 +523,9 @@ void console_init(console_state & con_st) {
         dwMode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
         SetConsoleMode(hConIn, dwMode);
     }
+    _setmode(_fileno(stdout), _O_U8TEXT);//MH8
+    _setmode(_fileno(stdin), _O_U8TEXT);//MH8 
+    setlocale(LC_ALL, "zh-CN.UTF-8");//MH8 
 #else
     // POSIX-specific console initialization
     struct termios new_termios;
