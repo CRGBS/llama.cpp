@@ -96,7 +96,8 @@ int main(int argc, char ** argv) {
         params.prompt = gpt_random_prompt(rng);
     }
 
-    llama_init_backend();
+//    params.prompt = R"(// this function checks if the number n is prime
+//bool is_prime(int n) {)";
 
     llama_context * ctx;
     g_ctx = &ctx;
