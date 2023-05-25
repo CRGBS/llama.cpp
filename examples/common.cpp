@@ -581,7 +581,7 @@ void console_set_color(console_state & con_st, console_color_t color) {
 }
 
 char32_t getchar32() {
-#if defined(_WIN32)
+/*#if defined(_WIN32)
     HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
     wchar_t high_surrogate = 0;
 
@@ -611,7 +611,7 @@ char32_t getchar32() {
             return static_cast<char32_t>(wc);
         }
     }
-#else
+#else*/
     wchar_t wc = getwchar();
     if (static_cast<wint_t>(wc) == WEOF) {
         return WEOF;
