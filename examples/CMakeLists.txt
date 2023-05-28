@@ -13,6 +13,8 @@ set(TARGET common)
 add_library(${TARGET} OBJECT
     common.h
     common.cpp
+    common-ggml.h
+    common-ggml.cpp
     )
 
 if (BUILD_SHARED_LIBS)
