@@ -35,7 +35,6 @@ if (EMSCRIPTEN)
 else()
     add_subdirectory(main)
     add_subdirectory(quantize-stats)
-    add_subdirectory(embedding)
     add_subdirectory(save-load-state)
     add_subdirectory(benchmark)
 
