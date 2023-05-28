@@ -1,5 +1,5 @@
 # Define the default target now so that it is always the first target
-BUILD_TARGETS = main #quantize
+BUILD_TARGETS = main quantize
 
 ifdef LLAMA_BUILD_SERVER
 	BUILD_TARGETS += server
