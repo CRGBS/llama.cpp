@@ -1,7 +1,7 @@
 set(TARGET main)
 add_executable(${TARGET} main.cpp)
 target_link_libraries(${TARGET} PRIVATE common llama ${CMAKE_THREAD_LIBS_INIT})
-target_compile_features(${TARGET} PRIVATE cxx_std_11)
+target_compile_features(${TARGET} PRIVATE cxx_std_20)
 if(TARGET BUILD_INFO)
   add_dependencies(${TARGET} BUILD_INFO)
 endif()
@@ -11,12 +11,13 @@ endif()
 
 set(TARGET starcoder)
 add_executable(${TARGET} main.cpp)
-target_link_libraries(${TARGET} PRIVATE ggml common common-ggml)
-
+target_link_libraries(${TARGET} PRIVATE ggml common common-ggml llama ${CMAKE_THREAD_LIBS_INIT})
+target_compile_features(${TARGET} PRIVATE cxx_std_20)
 #
 # starcoder-quantize
 
 set(TARGET quantize)
 add_executable(${TARGET} quantize.cpp)
-target_link_libraries(${TARGET} PRIVATE ggml common common-ggml)
+target_link_libraries(${TARGET} PRIVATE ggml common common-ggml llama ${CMAKE_THREAD_LIBS_INIT})
+target_compile_features(${TARGET} PRIVATE cxx_std_20)
 
