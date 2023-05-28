@@ -216,7 +216,7 @@ libllama.so: llama.o ggml.o $(OBJS)
 	$(CXX) $(CXXFLAGS) -shared -fPIC -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -vf *.o main quantize # quantize-stats perplexity embedding benchmark-matmult save-load-state server vdot build-info.h
+	rm -vf *.o main quantize vdot build-info.h# quantize-stats perplexity embedding benchmark-matmult save-load-state server
 
 #
 # Examples
