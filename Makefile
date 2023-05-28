@@ -221,7 +221,7 @@ clean:
 #
 # Examples
 #
-quantize: examples/main/quantize.cpp build-info.h ggml.o llama.o common.o $(OBJS)
+quantize: examples/quantize/quantize.cpp build-info.h ggml.o llama.o common.o $(OBJS)
 	$(CXX) $(CXXFLAGS) $(filter-out %.h,$^) -o $@ $(LDFLAGS)
 	@echo
 	@echo '====  Run ./quantize -h for help.  ===='
