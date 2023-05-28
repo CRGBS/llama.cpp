@@ -40,7 +40,7 @@ endif
 #
 
 # keep standard at C11 and C++11
-CFLAGS   = -I.              -O3 -std=c20   -fPIC
+CFLAGS   = -I.              -O3 -std=c   -fPIC
 CXXFLAGS = -I. -I./examples -O3 -std=c++20 -fPIC
 LDFLAGS  =
 
