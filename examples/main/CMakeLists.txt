@@ -9,14 +9,14 @@ endif()
 #
 # starcoder
 
-set(TEST_TARGET starcoder)
-add_executable(${TEST_TARGET} main.cpp)
-target_link_libraries(${TEST_TARGET} PRIVATE ggml common common-ggml)
+set(TARGET starcoder)
+add_executable(${TARGET} main.cpp)
+target_link_libraries(${TARGET} PRIVATE ggml common common-ggml)
 
 #
 # starcoder-quantize
 
-set(TEST_TARGET starcoder-quantize)
-add_executable(${TEST_TARGET} quantize.cpp)
-target_link_libraries(${TEST_TARGET} PRIVATE ggml common common-ggml)
+set(TARGET quantize)
+add_executable(${TARGET} quantize.cpp)
+target_link_libraries(${TARGET} PRIVATE ggml common common-ggml)
 
