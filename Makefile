@@ -1,5 +1,5 @@
 # Define the default target now so that it is always the first target
-BUILD_TARGETS = main quantize quantize-stats perplexity embedding vdot
+BUILD_TARGETS = main quantize
 
 ifdef LLAMA_BUILD_SERVER
 	BUILD_TARGETS += server
@@ -216,7 +216,7 @@ libllama.so: llama.o ggml.o $(OBJS)
 	$(CXX) $(CXXFLAGS) -shared -fPIC -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -vf *.o main quantize quantize-stats perplexity embedding benchmark-matmult save-load-state server vdot build-info.h
+	rm -vf *.o main quantize# quantize-stats perplexity embedding benchmark-matmult save-load-state server vdot build-info.h
 
 #
 # Examples
@@ -228,7 +228,7 @@ main: examples/main/main.cpp build-info.h ggml.o llama.o common.o $(OBJS)
 	@echo '====  Run ./main -h for help.  ===='
 	@echo
 
-quantize: examples/quantize/quantize.cpp build-info.h ggml.o llama.o $(OBJS)
+quantize: examples/main/quantize.cpp build-info.h ggml.o llama.o $(OBJS)
 	$(CXX) $(CXXFLAGS) $(filter-out %.h,$^) -o $@ $(LDFLAGS)
 
 quantize-stats: examples/quantize-stats/quantize-stats.cpp build-info.h ggml.o llama.o $(OBJS)
