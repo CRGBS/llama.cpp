@@ -2,75 +2,33 @@
 
 #pragma once
 
-#include "llama.h"
-
 #include <string>
+#include <map>
 #include <vector>
 #include <random>
 #include <thread>
-#include <unordered_map>
 
-#if !defined (_WIN32)
-#include <stdio.h>
-#include <termios.h>
-#endif
+#define COMMON_SAMPLE_RATE 16000
 
 //
 // CLI argument parsing
 //
-int32_t get_num_physical_cores();
 
 struct gpt_params {
-    int32_t seed          = -1;  // RNG seed
-    int32_t n_threads     = get_num_physical_cores();
-    int32_t n_predict     = -1;  // new tokens to predict
-    int32_t n_ctx         = 512; // context size
-    int32_t n_batch       = 512; // batch size for prompt processing (must be >=32 to use BLAS)
-    int32_t n_keep        = 0;   // number of tokens to keep from initial prompt
-    int32_t n_gpu_layers  = 0;   // number of layers to store in VRAM
+    int32_t seed      = -1; // RNG seed
+    int32_t n_threads = std::min(4, (int32_t) std::thread::hardware_concurrency());
+    int32_t n_predict = 200; // new tokens to predict
 
     // sampling parameters
-    std::unordered_map<llama_token, float> logit_bias; // logit bias for specific tokens
-    int32_t top_k             = 40;    // <= 0 to use vocab size
-    float   top_p             = 0.95f; // 1.0 = disabled
-    float   tfs_z             = 1.00f; // 1.0 = disabled
-    float   typical_p         = 1.00f; // 1.0 = disabled
-    float   temp              = 0.80f; // 1.0 = disabled
-    float   repeat_penalty    = 1.10f; // 1.0 = disabled
-    int32_t repeat_last_n     = 64;    // last n tokens to penalize (0 = disable penalty, -1 = context size)
-    float   frequency_penalty = 0.00f; // 0.0 = disabled
-    float   presence_penalty  = 0.00f; // 0.0 = disabled
-    int     mirostat          = 0;     // 0 = disabled, 1 = mirostat, 2 = mirostat 2.0
-    float   mirostat_tau      = 5.00f; // target entropy
-    float   mirostat_eta      = 0.10f; // learning rate
+    int32_t top_k = 40;
+    float   top_p = 0.9f;
+    float   temp  = 0.9f;
 
-    std::string model             = "models/7B/ggml-model.bin"; // model path
-    std::string prompt            = "";
-    std::string path_prompt_cache = "";  // path to file for saving/loading prompt eval state
-    std::string input_prefix      = "";  // string to prefix user inputs with
-    std::string input_suffix      = "";  // string to suffix user inputs with
-    std::vector<std::string> antiprompt; // string upon seeing which more user input is prompted
+    int32_t n_batch = 8; // batch size for prompt processing
 
-    std::string lora_adapter = "";  // lora adapter path
-    std::string lora_base    = "";  // base model path for the lora adapter
-
-    bool memory_f16        = true;  // use f16 instead of f32 for memory kv
-    bool random_prompt     = false; // do not randomize prompt if none provided
-    bool use_color         = false; // use color to distinguish generations and inputs
-    bool interactive       = false; // interactive mode
-    bool prompt_cache_all  = false; // save user input and generations to prompt cache
-
-    bool embedding         = false; // get only sentence embedding
-    bool interactive_first = false; // wait for user input immediately
-    bool multiline_input   = false; // reverse the usage of `\`
-
-    bool instruct          = false; // instruction mode (used for Alpaca models)
-    bool penalize_nl       = true;  // consider newlines as a repeatable token
-    bool perplexity        = false; // compute perplexity over the prompt
-    bool use_mmap          = true;  // use mmap for faster loads
-    bool use_mlock         = false; // use mlock to keep model in memory
-    bool mem_test          = false; // compute maximum memory usage
-    bool verbose_prompt    = false; // print prompt tokens before generation
+    std::string model      = "models/gpt-2-117M/ggml-model.bin"; // model path
+    std::string prompt     = "";
+    std::string token_test = "";
 };
 
 bool gpt_params_parse(int argc, char ** argv, gpt_params & params);
@@ -83,48 +41,111 @@ std::string gpt_random_prompt(std::mt19937 & rng);
 // Vocab utils
 //
 
-std::vector<llama_token> llama_tokenize(struct llama_context * ctx, const std::string & text, bool add_bos);
+std::string trim(const std::string & s);
 
-//
-// Model utils
-//
+std::string replace(
+        const std::string & s,
+        const std::string & from,
+        const std::string & to);
 
-struct llama_context * llama_init_from_gpt_params(const gpt_params & params);
+struct gpt_vocab {
+    using id    = int32_t;
+    using token = std::string;
 
-//
-// Console utils
-//
+    std::map<token, id> token_to_id;
+    std::map<id, token> id_to_token;
+    std::vector<std::string> special_tokens;
 
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_BLUE    "\x1b[34m"
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
-#define ANSI_BOLD          "\x1b[1m"
-
-enum console_color_t {
-    CONSOLE_COLOR_DEFAULT=0,
-    CONSOLE_COLOR_PROMPT,
-    CONSOLE_COLOR_USER_INPUT
+    void add_special_token(const std::string & token);
 };
 
-struct console_state {
-    bool multiline_input = false;
-    bool use_color = false;
-    console_color_t color = CONSOLE_COLOR_DEFAULT;
+// poor-man's JSON parsing
+std::map<std::string, int32_t> json_parse(const std::string & fname);
 
-    FILE* out = stdout;
-#if defined (_WIN32)
-    void* hConsole;
-#else
-    FILE* tty = nullptr;
-    termios prev_state;
-#endif
-};
+std::string convert_to_utf8(const std::wstring & input);
 
-void console_init(console_state & con_st);
-void console_cleanup(console_state & con_st);
-void console_set_color(console_state & con_st, console_color_t color);
-bool console_readline(console_state & con_st, std::string & line);
+std::wstring convert_to_wstring(const std::string & input);
+
+// split text into tokens
+//
+// ref: https://github.com/openai/gpt-2/blob/a74da5d99abaaba920de8131d64da2862a8f213b/src/encoder.py#L53
+//
+// Regex (Python):
+// r"""'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
+//
+// Regex (C++):
+// R"('s|'t|'re|'ve|'m|'ll|'d| ?[[:alpha:]]+| ?[[:digit:]]+| ?[^\s[:alpha:][:digit:]]+|\s+(?!\S)|\s+)"
+//
+std::vector<gpt_vocab::id> gpt_tokenize(const gpt_vocab & vocab, const std::string & text);
+
+// test outputs of gpt_tokenize
+//
+//   - compare with tokens generated by the huggingface tokenizer 
+//   - test cases are chosen based on the model's main language (under 'prompt' directory)
+//   - if all sentences are tokenized identically, print 'All tests passed.'
+//   - otherwise, print sentence, huggingface tokens, ggml tokens
+//
+void test_gpt_tokenizer(gpt_vocab & vocab, const std::string & fpath_test);
+
+// load the tokens from encoder.json
+bool gpt_vocab_init(const std::string & fname, gpt_vocab & vocab);
+
+// sample next token given probabilities for each embedding
+//
+//   - consider only the top K tokens
+//   - from them, consider only the top tokens with cumulative probability > P
+//
+// TODO: not sure if this implementation is correct
+// TODO: temperature is not implemented
+//
+gpt_vocab::id gpt_sample_top_k_top_p(
+        const gpt_vocab & vocab,
+        const float * logits,
+        int    top_k,
+        double top_p,
+        double temp,
+        std::mt19937 & rng);
+
+gpt_vocab::id gpt_sample_top_k_top_p_repeat(
+        const gpt_vocab & vocab,
+        const float * logits,
+        const int32_t * last_n_tokens_data,
+        size_t last_n_tokens_data_size,
+        int    top_k,
+        double top_p,
+        double temp,
+        int repeat_last_n,
+        float repeat_penalty,
+        std::mt19937 & rng);
+
+//
+// Audio utils
+//
+
+// Read WAV audio file and store the PCM data into pcmf32
+// The sample rate of the audio must be equal to COMMON_SAMPLE_RATE
+// If stereo flag is set and the audio has 2 channels, the pcmf32s will contain 2 channel PCM
+bool read_wav(
+        const std::string & fname,
+        std::vector<float> & pcmf32,
+        std::vector<std::vector<float>> & pcmf32s,
+        bool stereo);
+
+// Apply a high-pass frequency filter to PCM audio
+// Suppresses frequencies below cutoff Hz
+void high_pass_filter(
+        std::vector<float> & data,
+        float cutoff,
+        float sample_rate);
+
+// Basic voice activity detection (VAD) using audio energy adaptive threshold
+bool vad_simple(
+        std::vector<float> & pcmf32,
+        int   sample_rate,
+        int   last_ms,
+        float vad_thold,
+        float freq_thold,
+        bool  verbose);
+
+// compute similarity between two strings using Levenshtein distance
+float similarity(const std::string & s0, const std::string & s1);
