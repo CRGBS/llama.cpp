@@ -216,23 +216,24 @@ libllama.so: llama.o ggml.o $(OBJS)
 	$(CXX) $(CXXFLAGS) -shared -fPIC -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -vf *.o main quantize# quantize-stats perplexity embedding benchmark-matmult save-load-state server vdot build-info.h
+	rm -vf *.o main quantize # quantize-stats perplexity embedding benchmark-matmult save-load-state server vdot build-info.h
 
 #
 # Examples
 #
-
+quantize: examples/main/quantize.cpp build-info.h ggml.o llama.o common.o $(OBJS)
+	$(CXX) $(CXXFLAGS) $(filter-out %.h,$^) -o $@ $(LDFLAGS)
+	@echo
+	@echo '====  Run ./quantize -h for help.  ===='
+	@echo
+	
 main: examples/main/main.cpp build-info.h ggml.o llama.o common.o $(OBJS)
 	$(CXX) $(CXXFLAGS) $(filter-out %.h,$^) -o $@ $(LDFLAGS)
 	@echo
 	@echo '====  Run ./main -h for help.  ===='
 	@echo
 
-quantize: examples/main/quantize.cpp build-info.h ggml.o llama.o common.o $(OBJS)
-	$(CXX) $(CXXFLAGS) $(filter-out %.h,$^) -o $@ $(LDFLAGS)
-	@echo
-	@echo '====  Run ./quantize -h for help.  ===='
-	@echo
+
 	
 quantize-stats: examples/quantize-stats/quantize-stats.cpp build-info.h ggml.o llama.o $(OBJS)
 	$(CXX) $(CXXFLAGS) $(filter-out %.h,$^) -o $@ $(LDFLAGS)
