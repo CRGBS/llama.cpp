@@ -844,10 +844,10 @@ int main(int argc, char ** argv) {
 
         
         // Print the last element of the vector
-        if (!embd.empty()) {
+        /*if (!embd.empty()) {
             std::string embdStr = std::to_string(embd.back());
             printf("embd = %s\n", embdStr.c_str());
-        }
+        }*/
         
         // check if model is santacoder
         if (model.hparams.n_layer <= 30 && embd.back() == 49152) {
@@ -855,6 +855,9 @@ int main(int argc, char ** argv) {
         }
         // check if model is starcoder
         else if (embd.back() == 0) { //TODO: this is only for starcoder
+            break;
+        }
+        else if (embd.back() == 49155) { //TODO: this is only for starcoderalpha
             break;
         }
     }
