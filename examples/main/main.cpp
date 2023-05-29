@@ -843,7 +843,11 @@ int main(int argc, char ** argv) {
         fflush(stdout);
 
         
-        printf("embd = %s\n", embd.back());
+        // Print the last element of the vector
+        if (!embd.empty()) {
+            std::string embdStr = std::to_string(embd.back());
+            printf("embd = %s\n", embdStr.c_str());
+        }
         
         // check if model is santacoder
         if (model.hparams.n_layer <= 30 && embd.back() == 49152) {
