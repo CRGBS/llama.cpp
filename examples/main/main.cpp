@@ -842,6 +842,9 @@ int main(int argc, char ** argv) {
         }
         fflush(stdout);
 
+        
+        printf("embd = %s\n", embd.back());
+        
         // check if model is santacoder
         if (model.hparams.n_layer <= 30 && embd.back() == 49152) {
             break;
